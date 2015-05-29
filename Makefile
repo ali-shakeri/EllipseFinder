@@ -9,7 +9,7 @@ INSTALL = /usr/local/bin/
 VPATH = src
 
 CC = g++
-OBJS = EllipseFinder.o fit_ellipse.o merge_images.o
+OBJS = EllipseFinder.o fit_ellipse.o merge_images.o mouse_handler.o
 LIBS = -lopencv_core -lopencv_imgproc -lopencv_objdetect -lopencv_highgui
 
 EllipseFinder : $(OBJS)
@@ -19,9 +19,10 @@ EllipseFinder : $(OBJS)
 	@echo
 
 
-EllipseFinder.o : EllipseFinder.cpp defs.h fit_ellipse.h merge_images.h
+EllipseFinder.o : EllipseFinder.cpp defs.h fit_ellipse.h merge_images.h mouse_handler.h
 fit_ellipse.o : fit_ellipse.cpp defs.h
 merge_images.o : merge_images.cpp defs.h
+mouse_handler.o: mouse_handler.cpp mouse_handler.h defs.h
 
 
 # move object files to bin directory

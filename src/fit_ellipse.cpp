@@ -19,10 +19,16 @@ Mat draw_ellipse(Mat threshold_frame, Mat croped_frame){
     }
     
     // draw ellipse
-    Mat drawing;    
+    Mat drawing;
     croped_frame.copyTo(drawing);
+    
+    static Scalar color;
+    static Scalar mean_img = mean(drawing);
+    if (mean_img[0] < 100) color = Scalar(255);
+    else color = Scalar(0);
+    
     for( int i = 0; i< contours.size(); i++ ){
-        ellipse(drawing, minEllipse[i], Scalar(0), 1, 1);
+        ellipse(drawing, minEllipse[i], color, 1, 1);
     }
     
     return drawing;

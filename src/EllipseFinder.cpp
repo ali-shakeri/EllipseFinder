@@ -1,31 +1,58 @@
-# include "defs.h"
-# include "fit_ellipse.h"
-# include "merge_images.h"
+#include "defs.h"
+#include "fit_ellipse.h"
+#include "merge_images.h"
+#include "mouse_handler.h"
+
+extern bool callback;
 
 int main(int argc, char* argv[])
 {
-	if (argc != 2){
-		cout << "Usage: " << argv[0] << " filename\n\tfilename: Name of movie" << endl;
-		return -1;
-	}
-
-    VideoCapture cap(argv[1]);         // read the video
-    //VideoCapture cap("../ellipsoid_2.mpg");         // read the video
-    if(!cap.isOpened())
-        return -1;
-
     Mat frame;
     Mat blured_frame;
     Mat canny;
     Mat threshold_frame;
     
+    const char* src_window = "Select ROI";
+    namedWindow(src_window,CV_WINDOW_AUTOSIZE);
+    
+    if (argc != 2)
+    {
+        cout << "Usage: " << argv[0] << " filename" << endl;
+        cout << "\tfilename: Name of movie" << endl;
+        return -1;
+    }
+
+    VideoCapture cap(argv[1]);         // read the video
+    if(!cap.isOpened())
+    {
+        cout << "\nThere is no file with this name." << endl;
+        return -1;
+    }
+
+    cap >> frame;
+    namedWindow(src_window,CV_WINDOW_AUTOSIZE);
+    imshow(src_window,frame);
+    
+    Rect pt, point1, point2;
+    setMouseCallback(src_window,mouseHandler, (void*)&pt);
+    
+    while (!callback)
+    {
+        Mat temp = frame.clone();
+        rectangle(temp, Point(pt.x, pt.y), Point(pt.x + pt.width, pt.y + pt.height), CV_RGB(255, 0, 0), 3, 8, 0);
+        imshow(src_window, temp);
+        waitKey(1);
+    }
+    destroyWindow(src_window);
+    
+    
     for(;;)
     {
         // read a frame and select a region of interest
         cap >> frame;
-        Rect croped_area = Rect(250, 250, 300, 300);
-        Mat croped_frame(frame, croped_area);
+        Mat croped_frame(frame, pt);
         cvtColor(croped_frame, croped_frame, CV_BGR2GRAY);
+        //cout << mean(croped_frame) << endl;
 
         // calculate the gaussian blur
         GaussianBlur(croped_frame, blured_frame, Size(7,7), 1.5, 1.5);
@@ -40,11 +67,9 @@ int main(int argc, char* argv[])
         Mat drawing = draw_ellipse(threshold_frame, croped_frame);
 
         Mat merged_frame = merge_images(croped_frame, blured_frame, threshold_frame, drawing);
-        //Mat merged_frame = merge_images(croped_frame, drawing, "Original Video", "Fited Ellipse");
-        //Mat merged_frame = merge_images(croped_frame, threshold_frame_1, drawing, "Original Video", "", "Fited Ellipse");
         imshow("multi-view", merged_frame);
 
-        if(waitKey(30) >= 0) break;
+        if(waitKey(1) >= 0) break;
     }
     return 0;
 }
